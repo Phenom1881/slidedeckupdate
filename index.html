@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UWSWVA Training &amp; Event Map</title>
+<style>
+  :root{
+    --ink:#26333a; --muted:#5a6b72; --slate:#1f3a44;
+    --line:#d7d2c8; --panel:#ffffff; --bg:#ece9e2;
+    --red:#C0392B; --blue:#1F6FB2; --green:#2E8B57;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,Helvetica,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:18px;}
+  .wrap{max-width:1240px;margin:0 auto;}
+  .controls{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .row + .row{margin-top:12px;}
+  .fields{display:flex;gap:14px;flex-wrap:wrap;flex:1;min-width:240px;}
+  .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;}
+  .field label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .field input{font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fbfaf7;}
+  .field input:focus{outline:none;border-color:#9fb1b8;}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .seg{display:inline-flex;gap:6px;background:#f2efe8;border:1px solid var(--line);border-radius:10px;padding:5px;}
+  .pinbtn{display:inline-flex;align-items:center;gap:7px;border:1.5px solid transparent;background:#fff;
+    border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;}
+  .pinbtn .dot{width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 2px #fff inset;}
+  .pinbtn[data-on="1"]{box-shadow:0 1px 3px rgba(0,0,0,.12);}
+  .pinbtn.sel[data-on="1"]{border-color:#26333a;}
+  .pinbtn.red[data-on="1"]{border-color:var(--red);}   .pinbtn.red .dot{background:var(--red);}
+  .pinbtn.blue[data-on="1"]{border-color:var(--blue);} .pinbtn.blue .dot{background:var(--blue);}
+  .pinbtn.green[data-on="1"]{border-color:var(--green);}.pinbtn.green .dot{background:var(--green);}
+  .pinbtn.sel .dot{background:#26333a;border-radius:2px;}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 13px;font-size:13px;
+    font-weight:600;color:var(--ink);cursor:pointer;}
+  .btn:hover{background:#f6f4ef;}
+  .btn.primary{background:var(--slate);color:#fff;border-color:var(--slate);}
+  .btn.primary:hover{background:#162a31;}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;}
+  svg#board{display:block;width:100%;height:auto;touch-action:none;}
+  .county{fill:#e8edef;stroke:#9fb1b8;stroke-width:1;stroke-linejoin:round;}
+  .county:hover{fill:#dbe7ec;}
+  .clabel{fill:#37464f;font-size:15px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:3px;
+    stroke-linejoin:round;text-anchor:middle;pointer-events:none;}
+  .citymark{fill:#ffffff;stroke:#6b7b83;stroke-width:1.5;}
+  .citylabel{fill:#5a6b72;font-size:12px;font-weight:600;paint-order:stroke;stroke:#ffffff;stroke-width:2.5px;
+    text-anchor:middle;pointer-events:none;}
+  .title-t{fill:#1f3a44;font-size:31px;font-weight:700;}
+  .sub-t{fill:#5a6b72;font-size:17px;font-weight:500;}
+  .legt{fill:#37464f;font-size:15px;font-weight:600;}
+  .tally-t{fill:#37464f;font-size:16px;font-weight:600;}
+  .foot-t{fill:#8a8a82;font-size:12.5px;}
+  .pinhit{fill:transparent;cursor:grab;}
+  .pinsel{fill:none;stroke:#111;stroke-width:2;stroke-dasharray:3 2;}
+  .pinlabel{font-size:14px;font-weight:600;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:14px 16px;}
+  .panel h3{margin:0 0 10px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
+  .pingroups{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;}
+  .pgcol h4{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:8px;}
+  .pgcol h4 .dot{width:11px;height:11px;border-radius:50%;}
+  .pgcol.red .dot{background:var(--red)} .pgcol.blue .dot{background:var(--blue)} .pgcol.green .dot{background:var(--green)}
+  .pitem{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #efece5;}
+  .pitem input{flex:1;min-width:0;font-size:13.5px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fbfaf7;}
+  .pitem .x{border:none;background:none;color:#b0392b;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
+  .pgempty{font-size:12.5px;color:#9aa3a7;padding:6px 0;border-top:1px solid #efece5;}
+  .savednote{font-size:12px;color:#7a8a90;margin-left:auto;}
+  @media(max-width:560px){ .title-t{font-size:24px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="controls">
+    <div class="row">
+      <div class="fields">
+        <div class="field">
+          <label>Map title</label>
+          <input id="inTitle" type="text" maxlength="64">
+        </div>
+        <div class="field">
+          <label>Subtitle / week</label>
+          <input id="inWeek" type="text" maxlength="72">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="tools">
+        <div class="seg" id="toolSeg">
+          <button class="pinbtn sel" data-tool="select" data-on="1"><span class="dot"></span>Select / move</button>
+          <button class="pinbtn red"  data-tool="completed"><span class="dot"></span>Completed</button>
+          <button class="pinbtn blue" data-tool="scheduled"><span class="dot"></span>Scheduled</button>
+          <button class="pinbtn green" data-tool="thisweek"><span class="dot"></span>This week</button>
+        </div>
+        <button class="btn primary" id="btnPng">⬇ Save PNG</button>
+        <button class="btn" id="btnExport">Export data</button>
+        <button class="btn" id="btnImport">Import</button>
+        <button class="btn" id="btnClear">Clear pins</button>
+        <input id="fileImport" type="file" accept="application/json" style="display:none">
+        <span class="savednote" id="savedNote"></span>
+      </div>
+    </div>
+    <div class="hint" id="hint">Pick a color above, then click anywhere on the map to drop a pin. In <b>Select / move</b> mode, drag a pin to reposition it, or click it to rename/delete below. Multiple pins can sit in the same locality.<br><span style="color:#7a8a90">Pins save automatically in this browser. To keep them for good, click <b>Export data</b> and commit <b>map-data.json</b> to your repo — the map loads from that file every time it opens.</span></div>
+  </div>
+
+  <div class="stage">
+    <svg id="board" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="panel">
+    <h3>Pins</h3>
+    <div class="pingroups" id="pinGroups"></div>
+  </div>
+
+</div>
+
+<script>const MAPDATA = {"viewBox":{"w":1180,"h":543},"pad":36,"counties":[{"fips":"51121","name":"Montgomery","type":"county","d":"M1100.195,173.394L1101.275,186.077L1117.891,209.704L1126.369,262.377L1073.551,298.164L1012.293,312.688L1001.027,271.693L1008.45,267.804L1008.789,260.819L1015.816,260.567L1023.708,253.65L1018.231,248.719L1017.377,254.168L1016.737,254.31L992.67,210.93L1046.765,183.507L1079.645,163.158Z","cx":1060.9,"cy":239.6},{"fips":"51155","name":"Pulaski","type":"county","d":"M1016.737,254.31L1010.764,249.424L1003.203,252.037L997.034,256.734L995.939,260.241L997.804,266.847L1001.027,271.693L1012.293,312.688L984.217,333.311L951.015,353.889L897.331,278.044L915.429,249.063L992.67,210.93Z","cx":960.7,"cy":281.5},{"fips":"51173","name":"Smyth","type":"county","d":"M626.76,322.844L657.157,332.83L690.236,310.785L733.807,302.752L751.813,325.261L788.541,399.02L700.338,422.946L681.227,447.395L652.043,388.708L609.206,334.391L614.756,327.174Z","cx":702.6,"cy":366.6},{"fips":"51197","name":"Wythe","type":"county","d":"M751.813,325.261L800.079,288.01L834.465,297.863L897.331,278.044L951.015,353.889L856.885,382.164L842.511,397.346L788.541,399.02Z","cx":845.1,"cy":339},{"fips":"51063","name":"Floyd","type":"county","d":"M1108.466,356.567L1061.248,385.569L1037.157,420.184L984.217,333.311L1012.293,312.688L1073.551,298.164L1126.369,262.377L1128.167,264.44L1141.93,258.671L1144,310.038Z","cx":1067.8,"cy":334.9},{"fips":"51051","name":"Dickenson","type":"county","d":"M511.973,290.412L456.076,318.048L412.613,298.046L388.045,257.862L385.76,228.175L399.08,221.432L448.925,202.248L461.444,190.371L462.977,188.916L515.959,282.803Z","cx":448.6,"cy":258.4},{"fips":"51035","name":"Carroll","type":"county","d":"M856.885,382.164L951.015,353.889L984.217,333.311L1037.157,420.184L1018.033,445.298L1001.626,438.301L991.022,478.69L967.521,477.416L949.887,477.309L920.896,478.292L920.724,478.306L920.627,478.301L896.864,442.915L908.368,426.601L895.804,425.856L894.892,432.074L891.222,434.618Z","cx":952.7,"cy":411.2},{"fips":"51167","name":"Russell","type":"county","d":"M511.973,290.412L552.829,279.827L589.177,250.993L626.76,322.844L614.756,327.174L609.206,334.391L574.192,359.576L534.041,363.24L524.788,386.072L454.804,419.937L447.123,392.33L431.564,354.92L465.247,343.591L456.076,318.048Z","cx":526.7,"cy":335},{"fips":"51720","name":"Norton","type":"city","d":"M352.482,338.372L366.173,323.593L374.742,325.743L366.559,343.657Z","cx":364.5,"cy":333.6},{"fips":"51169","name":"Scott","type":"county","d":"M317.87,384.711L360.489,354.091L431.564,354.92L447.123,392.33L454.804,419.937L462.315,454.85L466.737,464.156L385.528,464.424L383.82,464.453L383.414,464.453L368.418,464.725L346.375,464.881L341.417,464.881L299.437,464.857L251.221,464.83L262.928,432.967L301.704,410.625Z","cx":370.3,"cy":418.3},{"fips":"51185","name":"Tazewell","type":"county","d":"M757.198,174.573L770.308,189.613L799.926,214.861L767.81,252.377L785.848,270.363L726.003,292.814L733.807,302.752L690.236,310.785L657.157,332.83L626.76,322.844L589.177,250.993L639.904,212.494L641.481,213.587L643.079,212.923L656.999,224.031L658.54,227.548L695.322,225.906L696.03,225.326L696.353,225.501L711.939,215.281L712.701,209.839L712.923,208.892L742.366,195.289L742.532,194.806L749.099,181.546L749.537,181.322L749.823,181.474L750.102,181.966L750.348,182.058L751.585,182.355L752.461,182.117L754.342,179.894L755.501,178.54L754.946,176.871L755.348,176.637L755.671,175.821L755.901,175.263Z","cx":692.8,"cy":258.1},{"fips":"51191","name":"Washington","type":"county","d":"M454.804,419.937L524.788,386.072L534.041,363.24L574.192,359.576L609.206,334.391L652.043,388.708L681.227,447.395L679.721,455.865L668.424,457.805L612.355,456.913L582.456,456.137L578.871,464.681L512.799,464.487L522.642,447.463L482.494,464.104L466.737,464.156L462.315,454.85Z","cx":572.5,"cy":414.8},{"fips":"51195","name":"Wise","type":"county","d":"M431.564,354.92L360.489,354.091L317.87,384.711L282.232,345.542L285.924,340.908L286.435,340.457L289.138,337.005L289.613,336.254L290.699,332.946L290.598,332.81L290.052,331.104L289.694,330.372L289.819,328.214L290.022,327.827L291.435,325.24L291.558,324.719L290.704,324.63L290.053,323.858L289.325,323.175L288.906,323.09L288.534,323.05L287.925,321.061L287.03,320.158L287.016,319.964L287.356,316.769L287.356,316.768L287.583,315.872L287.87,315.467L288.134,315.259L288.342,315.173L288.689,314.885L289.307,314.508L292.522,312.561L292.901,312.743L296.438,311.722L296.907,311.756L297.699,311.049L298.374,309.825L299.322,309.251L299.845,307.652L299.389,306.323L303.311,304.287L304.015,303.883L308.759,303.591L311.765,304.053L311.899,303.856L312.326,303.571L312.387,303.506L315.981,300.727L317.718,300.556L333.096,289.08L333.68,274.729L333.261,265.405L363.522,243.019L382.073,230.043L382.088,230.033L385.76,228.175L388.045,257.862L412.613,298.046L456.076,318.048L465.247,343.591ZM352.482,338.372L366.559,343.657L374.742,325.743L366.173,323.593Z","cx":366.6,"cy":292.6},{"fips":"51520","name":"Bristol","type":"city","d":"M482.494,464.104L522.642,447.463L512.799,464.487L512.02,464.485L511.347,464.502L504.097,464.528L503.079,464.466L501.99,464.403L499.573,464.306L492.713,464.076L492.554,464.041L489.216,464.059L488.676,464.095L487.968,464.087L487.676,464.087Z","cx":506.1,"cy":458.7},{"fips":"51640","name":"Galax","type":"city","d":"M891.222,434.618L894.892,432.074L895.804,425.856L908.368,426.601L896.864,442.915L896.281,451.037L891.414,451.366L894.514,445.523L886.395,443.647L887.531,432.788Z","cx":896,"cy":436.6},{"fips":"51750","name":"Radford","type":"city","d":"M1001.027,271.693L997.804,266.847L995.939,260.241L997.034,256.734L1003.203,252.037L1010.764,249.424L1016.737,254.31L1017.377,254.168L1018.231,248.719L1023.708,253.65L1015.816,260.567L1008.789,260.819L1008.45,267.804Z","cx":1007.3,"cy":258.9},{"fips":"51071","name":"Giles","type":"county","d":"M876.328,192.044L878.247,192.7L880.533,192.421L886.35,190.965L895.278,186.932L901.116,183.468L917.042,170.957L909.829,160.979L912.893,145.486L913.891,138.527L913.892,138.522L914.229,139.02L914.265,139.072L928.831,147.182L932.812,151.774L939.703,156.356L939.739,156.533L941.787,160.973L987.747,137.054L1022.438,118.059L1027.59,136.362L1033.596,141.121L1046.765,183.507L992.67,210.93L915.429,249.063L865.589,198.993Z","cx":961,"cy":185.1},{"fips":"51077","name":"Grayson","type":"county","d":"M681.227,447.395L700.338,422.946L788.541,399.02L842.511,397.346L856.885,382.164L891.222,434.618L887.531,432.788L886.395,443.647L894.514,445.523L891.414,451.366L896.281,451.037L896.864,442.915L920.627,478.301L900.745,477.284L900.71,477.283L887.46,476.776L886.945,476.723L851.76,475.256L850.818,475.239L774.234,472.131L759.999,472.248L759.952,472.248L707.665,469.998L680.873,467.445L658.873,467.048L668.424,457.805L679.721,455.865Z","cx":798.3,"cy":440.4},{"fips":"51105","name":"Lee","type":"county","d":"M317.87,384.711L301.704,410.625L262.928,432.967L251.221,464.83L238.076,464.823L237.731,464.805L168.962,464.831L168.661,464.803L168.535,464.789L160.43,463.138L99.384,463.488L37.648,462.137L37.644,462.124L36,462.118L44.075,455.954L82.204,436.798L91.308,435.049L102.843,437.214L102.907,437.226L136.017,425.07L136.327,424.858L139.697,423.074L184.312,408.994L194.383,408.333L204.048,406.815L206.717,403.804L207.374,399.738L207.397,399.687L205.654,397.47L205.514,391.871L215.46,374.972L223.94,363.403L254.866,361.646L274.062,355.744L274.104,355.742L282.232,345.542Z","cx":207.7,"cy":420.7},{"fips":"51021","name":"Bland","type":"county","d":"M799.926,214.861L806.264,211.674L818.032,203.892L835.002,197.774L843.914,195.46L859.303,192.972L875.929,191.908L876.328,192.044L865.589,198.993L915.429,249.063L897.331,278.044L834.465,297.863L800.079,288.01L751.813,325.261L733.807,302.752L726.003,292.814L785.848,270.363L767.81,252.377Z","cx":829,"cy":255.5},{"fips":"51027","name":"Buchanan","type":"county","d":"M568.223,96L580.827,106.095L576.222,107.382L560.547,117.549L559.406,120.01L560.749,126.212L562.39,128.584L568.067,129.912L574.125,132.193L578.41,135.056L580.945,144.928L578.948,160.822L580.102,163.183L580.189,163.238L581.226,166.237L581.521,166.875L582.79,167.225L583.059,167.62L585.934,170.2L586.125,170.243L587.054,172.183L587.233,172.443L587.53,172.584L587.662,172.578L588.332,172.47L588.583,172.748L589.673,173.234L589.684,173.557L590.762,176.816L590.922,176.794L591.138,176.798L591.147,177.046L591.457,177.546L591.737,177.535L593.343,177.134L593.583,177.303L594.169,177.326L595.475,177.138L595.875,176.774L596.152,176.9L596.267,178.043L597.867,179.522L600.359,185.883L600.502,186.053L603.864,189.183L603.712,189.372L604.016,191.4L603.838,192.736L607.234,194.996L607.501,195.008L617.4,196.017L617.829,196.008L622.675,196.327L622.742,196.529L628.565,199.204L628.585,199.219L630.72,199.451L631.543,199.105L631.967,199.058L632.297,198.991L632.617,198.864L633.094,199.044L633.901,199.534L633.871,200.345L633.876,200.662L633.933,201.099L634.718,201.996L635.373,202.429L635.619,202.839L635.878,203.01L637.011,203.324L638.306,209.877L638.332,210.559L638.06,211.217L639.904,212.494L589.177,250.993L552.829,279.827L511.973,290.412L515.959,282.803L462.977,188.916L467.331,184.784Z","cx":545.3,"cy":202.8}]};</script>
+<script>
+(function(){
+  const SVGNS="http://www.w3.org/2000/svg";
+  const TYPES={
+    completed:{label:"Completed",color:"#C0392B"},
+    scheduled:{label:"Scheduled",color:"#1F6FB2"},
+    thisweek:{label:"This week",color:"#2E8B57"}
+  };
+  const ORDER=["completed","scheduled","thisweek"];
+  const board=document.getElementById("board");
+  const VB=MAPDATA.viewBox;
+  board.setAttribute("viewBox","0 0 "+VB.w+" "+VB.h);
+
+  let state={ title:"UWSWVA Disaster Recovery & Preparedness",
+              week:"Training & Event Map — Week of ____", pins:[] };
+  let tool="select";
+  let selId=null;
+  let saveTimer=null;
+
+  /* ---------- persistence ----------
+     Layered so it works wherever this file lives:
+       1. window.storage  -> Claude preview
+       2. localStorage    -> served from GitHub Pages / a local server (zero-click cache)
+       3. ./map-data.json -> the committed file in your repo (the durable, portable save)
+     Each layer is guarded so a blocked API never breaks the map. */
+  const KEY="uwmap:v1";
+  let lsOk=false;
+  try{ const k="__t"+Date.now(); localStorage.setItem(k,"1"); localStorage.removeItem(k); lsOk=true; }catch(e){ lsOk=false; }
+
+  function applyState(s){
+    if(!s) return false;
+    state.title=s.title||state.title;
+    state.week=s.week||state.week;
+    state.pins=Array.isArray(s.pins)?s.pins:[];
+    return true;
+  }
+
+  async function load(){
+    try{ if(window.storage){ const r=await window.storage.get(KEY,false);
+      if(r&&r.value){ applyState(JSON.parse(r.value)); return; } } }catch(e){}
+    try{ if(lsOk){ const v=localStorage.getItem(KEY);
+      if(v){ applyState(JSON.parse(v)); return; } } }catch(e){}
+    try{ const res=await fetch("./map-data.json",{cache:"no-store"});
+      if(res.ok){ applyState(await res.json()); } }catch(e){}
+  }
+
+  function save(){
+    if(saveTimer)clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>{
+      const json=JSON.stringify(state);
+      try{ if(window.storage) window.storage.set(KEY,json,false); }catch(e){}
+      try{ if(lsOk) localStorage.setItem(KEY,json); }catch(e){}
+      flash(lsOk?"Saved in browser":"Saved");
+    },350);
+  }
+  function flash(t){ const n=document.getElementById("savedNote"); n.textContent=t;
+    clearTimeout(flash._t); flash._t=setTimeout(()=>n.textContent="",1400); }
+
+  /* ---------- static map ---------- */
+  function drawBase(){
+    const bg=document.createElementNS(SVGNS,"rect");
+    bg.setAttribute("x",0);bg.setAttribute("y",0);bg.setAttribute("width",VB.w);bg.setAttribute("height",VB.h);
+    bg.setAttribute("fill","#ffffff");bg.setAttribute("rx",8);board.appendChild(bg);
+
+    const gMap=document.createElementNS(SVGNS,"g");gMap.setAttribute("id","gMap");board.appendChild(gMap);
+    // counties
+    MAPDATA.counties.filter(c=>c.type==="county").forEach(c=>{
+      const p=document.createElementNS(SVGNS,"path");
+      p.setAttribute("d",c.d);p.setAttribute("class","county");gMap.appendChild(p);
+    });
+    // city polys (on top, so they fill carve-outs)
+    MAPDATA.counties.filter(c=>c.type==="city").forEach(c=>{
+      const p=document.createElementNS(SVGNS,"path");
+      p.setAttribute("d",c.d);p.setAttribute("class","county");gMap.appendChild(p);
+    });
+    // county labels
+    MAPDATA.counties.filter(c=>c.type==="county").forEach(c=>{
+      const t=document.createElementNS(SVGNS,"text");
+      t.setAttribute("x",c.cx);t.setAttribute("y",c.cy+4);t.setAttribute("class","clabel");
+      t.textContent=c.name;gMap.appendChild(t);
+    });
+    // city markers + labels
+    MAPDATA.counties.filter(c=>c.type==="city").forEach(c=>{
+      const m=document.createElementNS(SVGNS,"rect");
+      const s=7; m.setAttribute("x",c.cx-s/2);m.setAttribute("y",c.cy-s/2);
+      m.setAttribute("width",s);m.setAttribute("height",s);
+      m.setAttribute("transform","rotate(45 "+c.cx+" "+c.cy+")");m.setAttribute("class","citymark");
+      gMap.appendChild(m);
+      const t=document.createElementNS(SVGNS,"text");
+      t.setAttribute("x",c.cx);t.setAttribute("y",c.cy-9);t.setAttribute("class","citylabel");
+      t.textContent=c.name;gMap.appendChild(t);
+    });
+
+    // title + subtitle
+    const ttl=document.createElementNS(SVGNS,"text");
+    ttl.setAttribute("x",MAPDATA.pad);ttl.setAttribute("y",46);ttl.setAttribute("class","title-t");
+    ttl.setAttribute("id","svgTitle");board.appendChild(ttl);
+    const sub=document.createElementNS(SVGNS,"text");
+    sub.setAttribute("x",MAPDATA.pad);sub.setAttribute("y",74);sub.setAttribute("class","sub-t");
+    sub.setAttribute("id","svgSub");board.appendChild(sub);
+
+    // legend (top-right)
+    const lg=document.createElementNS(SVGNS,"g");lg.setAttribute("id","legend");board.appendChild(lg);
+    let lx=VB.w-MAPDATA.pad, ly=44;
+    // build right-to-left so it hugs the right edge
+    const items=ORDER.map(k=>({k,label:TYPES[k].label,color:TYPES[k].color}));
+    // measure-free fixed spacing
+    const widths={completed:118,scheduled:116,thisweek:112};
+    let totalW=items.reduce((a,it)=>a+widths[it.k],0);
+    let startX=VB.w-MAPDATA.pad-totalW;
+    let cx=startX;
+    items.forEach(it=>{
+      const pin=makePinGlyph(it.color);
+      pin.setAttribute("transform","translate("+(cx+9)+","+(ly+9)+") scale(0.7)");
+      lg.appendChild(pin);
+      const t=document.createElementNS(SVGNS,"text");
+      t.setAttribute("x",cx+22);t.setAttribute("y",ly+9);t.setAttribute("class","legt");
+      t.textContent=it.label;lg.appendChild(t);
+      cx+=widths[it.k];
+    });
+
+    // tally + footer (bottom band)
+    const tl=document.createElementNS(SVGNS,"text");
+    tl.setAttribute("x",MAPDATA.pad);tl.setAttribute("y",VB.h-26);tl.setAttribute("class","tally-t");
+    tl.setAttribute("id","svgTally");board.appendChild(tl);
+    const ft=document.createElementNS(SVGNS,"text");
+    ft.setAttribute("x",VB.w-MAPDATA.pad);ft.setAttribute("y",VB.h-26);
+    ft.setAttribute("text-anchor","end");ft.setAttribute("class","foot-t");
+    ft.textContent="United Way of Southwest Virginia  ·  21 localities served";
+    board.appendChild(ft);
+
+    // pins layer (on very top)
+    const gp=document.createElementNS(SVGNS,"g");gp.setAttribute("id","gPins");board.appendChild(gp);
+  }
+
+  function makePinGlyph(color){
+    const g=document.createElementNS(SVGNS,"g");
+    const p=document.createElementNS(SVGNS,"path");
+    p.setAttribute("d","M0,0 C-6.5,-12 -11,-16.5 -11,-23 A11,11 0 1 1 11,-23 C11,-16.5 6.5,-12 0,0 Z");
+    p.setAttribute("fill",color);p.setAttribute("stroke","#ffffff");p.setAttribute("stroke-width","2");
+    g.appendChild(p);
+    const c=document.createElementNS(SVGNS,"circle");
+    c.setAttribute("cx",0);c.setAttribute("cy",-23);c.setAttribute("r",4.2);c.setAttribute("fill","#ffffff");
+    g.appendChild(c);
+    return g;
+  }
+
+  /* ---------- pins ---------- */
+  function renderPins(){
+    const layer=document.getElementById("gPins");
+    while(layer.firstChild)layer.removeChild(layer.firstChild);
+    state.pins.forEach(pin=>{
+      const g=document.createElementNS(SVGNS,"g");
+      g.setAttribute("transform","translate("+pin.x+","+pin.y+")");
+      g.dataset.id=pin.id;
+      if(pin.id===selId){
+        const ring=document.createElementNS(SVGNS,"circle");
+        ring.setAttribute("cx",0);ring.setAttribute("cy",-23);ring.setAttribute("r",15);
+        ring.setAttribute("class","pinsel");g.appendChild(ring);
+      }
+      const glyph=makePinGlyph(TYPES[pin.type].color);
+      g.appendChild(glyph);
+      if(pin.label){
+        const t=document.createElementNS(SVGNS,"text");
+        t.setAttribute("x",14);t.setAttribute("y",-19);t.setAttribute("class","pinlabel");
+        t.setAttribute("fill",TYPES[pin.type].color);
+        t.textContent=pin.label;g.appendChild(t);
+      }
+      const hit=document.createElementNS(SVGNS,"circle");
+      hit.setAttribute("cx",0);hit.setAttribute("cy",-17);hit.setAttribute("r",16);
+      hit.setAttribute("class","pinhit");g.appendChild(hit);
+      attachDrag(g,pin);
+      layer.appendChild(g);
+    });
+    renderTally();renderList();
+  }
+
+  function renderTally(){
+    const c={completed:0,scheduled:0,thisweek:0};
+    state.pins.forEach(p=>c[p.type]++);
+    const t=document.getElementById("svgTally");
+    if(t)t.textContent="Completed: "+c.completed+"     Scheduled: "+c.scheduled+"     This week: "+c.thisweek;
+  }
+
+  function svgPoint(evt){
+    const pt=board.createSVGPoint();
+    const src=evt.touches?evt.touches[0]:evt;
+    pt.x=src.clientX;pt.y=src.clientY;
+    return pt.matrixTransform(board.getScreenCTM().inverse());
+  }
+
+  function attachDrag(g,pin){
+    let moved=false,start=null;
+    function down(e){
+      if(tool!=="select")return;          // only move in select mode
+      e.stopPropagation();
+      moved=false;start=svgPoint(e);
+      g.querySelector(".pinhit").style.cursor="grabbing";
+      window.addEventListener("mousemove",move);window.addEventListener("mouseup",up);
+      window.addEventListener("touchmove",move,{passive:false});window.addEventListener("touchend",up);
+    }
+    function move(e){
+      const p=svgPoint(e);
+      if(Math.abs(p.x-start.x)>3||Math.abs(p.y-start.y)>3)moved=true;
+      if(moved){ if(e.cancelable)e.preventDefault();
+        pin.x=Math.round(p.x);pin.y=Math.round(p.y);
+        g.setAttribute("transform","translate("+pin.x+","+pin.y+")"); }
+    }
+    function up(){
+      g.querySelector(".pinhit").style.cursor="grab";
+      window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);
+      window.removeEventListener("touchmove",move);window.removeEventListener("touchend",up);
+      if(moved){save();} else { selId=(selId===pin.id?null:pin.id); renderPins(); }
+    }
+    g.addEventListener("mousedown",down);
+    g.addEventListener("touchstart",down,{passive:false});
+  }
+
+  board.addEventListener("mousedown",function(e){
+    if(tool==="select"){ if(selId){selId=null;renderPins();} return; }
+    const p=svgPoint(e);
+    const pin={id:"p"+Date.now()+Math.floor(Math.random()*1000),
+               x:Math.round(p.x),y:Math.round(p.y),type:tool,label:""};
+    state.pins.push(pin);selId=pin.id;renderPins();save();
+  });
+
+  /* ---------- side list ---------- */
+  function renderList(){
+    const host=document.getElementById("pinGroups");
+    host.innerHTML="";
+    ORDER.forEach(k=>{
+      const col=document.createElement("div");
+      col.className="pgcol "+(k==="completed"?"red":k==="scheduled"?"blue":"green");
+      const items=state.pins.filter(p=>p.type===k);
+      col.innerHTML='<h4><span class="dot"></span>'+TYPES[k].label+' ('+items.length+')</h4>';
+      if(items.length===0){
+        const e=document.createElement("div");e.className="pgempty";e.textContent="No pins yet";col.appendChild(e);
+      }
+      items.forEach(pin=>{
+        const row=document.createElement("div");row.className="pitem";
+        const inp=document.createElement("input");
+        inp.type="text";inp.placeholder="Location / venue (optional)";inp.value=pin.label||"";
+        inp.maxLength=28;
+        inp.addEventListener("input",()=>{pin.label=inp.value;renderPins();save();});
+        inp.addEventListener("focus",()=>{selId=pin.id;renderPins();});
+        const x=document.createElement("button");x.className="x";x.innerHTML="✕";x.title="Delete pin";
+        x.addEventListener("click",()=>{ state.pins=state.pins.filter(p=>p.id!==pin.id);
+          if(selId===pin.id)selId=null; renderPins();save(); });
+        row.appendChild(inp);row.appendChild(x);col.appendChild(row);
+      });
+      host.appendChild(col);
+    });
+  }
+
+  /* ---------- controls ---------- */
+  function setTool(t){
+    tool=t;
+    document.querySelectorAll("#toolSeg .pinbtn").forEach(b=>{
+      b.dataset.on=(b.dataset.tool===t)?"1":"0";
+    });
+    document.getElementById("board").style.cursor=(t==="select")?"default":"crosshair";
+  }
+  document.querySelectorAll("#toolSeg .pinbtn").forEach(b=>{
+    b.addEventListener("click",()=>setTool(b.dataset.tool));
+  });
+
+  const inTitle=document.getElementById("inTitle"), inWeek=document.getElementById("inWeek");
+  function syncText(){
+    document.getElementById("svgTitle").textContent=state.title;
+    document.getElementById("svgSub").textContent=state.week;
+  }
+  inTitle.addEventListener("input",()=>{state.title=inTitle.value;syncText();save();});
+  inWeek.addEventListener("input",()=>{state.week=inWeek.value;syncText();save();});
+
+  document.getElementById("btnClear").addEventListener("click",()=>{
+    if(state.pins.length&&confirm("Remove all pins? This cannot be undone.")){
+      state.pins=[];selId=null;renderPins();save();}
+  });
+
+  document.getElementById("btnExport").addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download="map-data.json";a.click();URL.revokeObjectURL(a.href);
+  });
+  document.getElementById("btnImport").addEventListener("click",()=>document.getElementById("fileImport").click());
+  document.getElementById("fileImport").addEventListener("change",function(){
+    const f=this.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const s=JSON.parse(r.result);state.title=s.title||state.title;
+      state.week=s.week||state.week;state.pins=s.pins||[];
+      inTitle.value=state.title;inWeek.value=state.week;syncText();renderPins();save();
+    }catch(e){alert("Could not read that file.");}};
+    r.readAsText(f);this.value="";
+  });
+
+  document.getElementById("btnPng").addEventListener("click",exportPNG);
+  function exportPNG(){
+    const prevSel=selId; selId=null; renderPins();      // hide selection ring in export
+    const scale=2;
+    const clone=board.cloneNode(true);
+    clone.setAttribute("width",VB.w*scale);clone.setAttribute("height",VB.h*scale);
+    clone.setAttribute("xmlns",SVGNS);
+    const xml=new XMLSerializer().serializeToString(clone);
+    const blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=function(){
+      const cv=document.createElement("canvas");cv.width=VB.w*scale;cv.height=VB.h*scale;
+      const ctx=cv.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,cv.width,cv.height);
+      ctx.drawImage(img,0,0);URL.revokeObjectURL(url);
+      cv.toBlob(function(png){
+        const a=document.createElement("a");a.href=URL.createObjectURL(png);
+        a.download="uwswva-training-map.png";a.click();URL.revokeObjectURL(a.href);
+        selId=prevSel;renderPins();
+      },"image/png");
+    };
+    img.onerror=function(){selId=prevSel;renderPins();alert("PNG export failed in this browser; a screenshot of the map will work too.");};
+    img.src=url;
+  }
+
+  /* ---------- boot ---------- */
+  (async function(){
+    await load();
+    drawBase();
+    inTitle.value=state.title;inWeek.value=state.week;
+    syncText();renderPins();setTool("select");
+  })();
+})();
+</script>
+</body>
+</html>
