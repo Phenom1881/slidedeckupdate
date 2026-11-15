@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f5f2e9">
+  <title>The Report-Out | Team Answer Cloud</title>
+  <style>
+:root{color-scheme:light;--paper:#f6f3ea;--ink:#182f2b;--muted:#4e6158;--line:#d6ded1;--green:#164d40;--white:#fffefa;--gold:#e9ad4b;--wash:#e7eee2;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh}
+button,a,input,textarea{-webkit-tap-highlight-color:transparent}
+a{color:var(--green);font-weight:650;text-underline-offset:.25em}
+button{cursor:pointer;font:inherit;font-weight:680;color:#fff;background:var(--green);border:1px solid transparent;padding:.68rem 1rem;border-radius:10px;min-height:44px}
+button:hover:not(:disabled){background:#0e3b30}
+button:disabled{cursor:default;opacity:.55}
+:focus-visible{outline:3px solid #996211;outline-offset:3px}
+input,textarea{border:1px solid #a6b7a9;border-radius:10px;padding:.72rem .8rem;font:inherit;color:var(--ink);background:#fff;min-width:0;width:100%}
+textarea{resize:vertical}
+label{font-size:.9rem;font-weight:650}
+p{line-height:1.6;margin:0 0 .9rem;color:var(--muted)}
+.shell{width:min(1120px,calc(100% - 64px));margin-inline:auto}
+.top{border-bottom:1px solid var(--line)}
+.bar{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar>a{font-size:.86rem}
+.bar .brand{display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;font-size:1.05rem;font-weight:780;letter-spacing:-.025em}
+.brand svg{width:33px;color:var(--green);fill:var(--white)}
+.hero{padding:clamp(35px,7vw,82px) 0 clamp(22px,4vw,42px)}
+.eyebrow{font-size:.73rem;letter-spacing:.14em;font-weight:780;color:var(--green);margin:0 0 .5rem}
+.spark{font-size:1.1rem;color:#8b5707;margin-right:.18rem}
+h1,h2{font-family:Georgia,"Times New Roman",serif;margin:0;font-weight:600;overflow-wrap:anywhere}
+h1{font-size:clamp(2.45rem,6vw,4.9rem);letter-spacing:-.06em;line-height:1.04;max-width:19ch;margin:.45rem 0 .75rem}
+.hero p{margin:0;font-size:clamp(1rem,2vw,1.16rem)}
+h2{font-size:1.8rem;letter-spacing:-.035em;line-height:1.12;margin-bottom:.55rem}
+.layout{display:grid;grid-template-columns:minmax(235px,.77fr) minmax(0,1.35fr);gap:16px;align-items:start}
+.card{border:1px solid var(--line);border-radius:19px;background:var(--white);padding:clamp(16px,3vw,28px);min-width:0}
+.form-card button[type=submit]{margin-top:.75rem;width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:8px}
+.form-card p,.share-card p{font-size:.95rem}
+.form-card .privacy{font-size:.76rem;margin:1rem 0 0}
+.status{font-size:.9rem;font-weight:650;color:var(--green);margin:.7rem 0 0;overflow-wrap:anywhere}
+.status:empty{display:none}
+.status[data-error="true"]{color:#872d1b}
+.cloud-card{background:var(--wash)}
+.cloud-top,.cloud-bottom,.actions,.row,.history-line{display:flex;align-items:center;gap:10px}
+.cloud-top{justify-content:space-between;align-items:start}
+.subtle{display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:5px;text-decoration:none;font-size:.84rem;background:var(--white);border:1px solid #b6c8b7;color:var(--green);border-radius:9px;padding:.55rem .76rem;min-height:40px}
+.subtle:hover,.subtle:hover:not(:disabled){background:#dce8db;color:var(--ink)}
+.cloud{display:flex;flex-wrap:wrap;gap:clamp(8px,2vw,20px);align-items:baseline;align-content:center;justify-content:center;text-align:center;min-height:clamp(190px,30vw,310px);padding:16px 0}
+.cloud .empty{margin:auto;max-width:23em;color:#455b4d}
+.word{font-weight:730;line-height:1.08;color:var(--word-color,var(--green));overflow-wrap:anywhere;min-width:0}
+.cloud-bottom{border-top:1px solid #c5d3c3;padding-top:12px;font-size:.8rem;color:var(--muted);font-weight:650}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#738278}
+.dot[data-live="true"]{background:#287b55;box-shadow:0 0 0 3px #c2dfc9}
+.footer{border-top:1px solid var(--line);margin-top:clamp(25px,6vw,60px);padding:15px 0 20px;display:flex;justify-content:space-between;gap:10px;font-size:.75rem;color:var(--muted)}
+.footer span:first-child{letter-spacing:.13em;font-weight:750}
+.host-card{max-width:520px}
+.host-card label,#manual-copy label{display:block;margin-bottom:6px}
+.host-layout{margin-top:16px;grid-template-columns:1fr 1fr}
+.history-card{margin:16px 0}
+.history-card ul{padding:0;margin:10px 0 0;list-style:none}
+.history-card li{border-top:1px solid var(--line);padding:11px 0;overflow-wrap:anywhere}
+.history-line{justify-content:space-between}
+.history-meta{display:block;color:var(--muted);font-size:.81rem;margin-top:3px}
+.actions{flex-wrap:wrap}
+#manual-copy{margin-top:10px}
+body.presenting .form-card,body.presenting .hero p{display:none}
+body.presenting .layout{grid-template-columns:1fr}
+body.presenting .cloud{min-height:50vh}
+body.presenting .hero{padding-top:30px}
+.skip{position:absolute;left:12px;top:6px;z-index:10;background:white;padding:8px;transform:translateY(-140%)}
+.skip:focus{transform:none}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media (max-width:680px){.shell{width:calc(100% - 32px)}.layout,.host-layout{grid-template-columns:1fr}.cloud-top{flex-wrap:wrap}.history-line{flex-direction:column;align-items:flex-start}.bar .brand{font-size:.96rem}.bar>a{font-size:.78rem}}
+
+</style>
+  <script>window.REPORT_OUT_API = "";</script>
+  <script type="module">
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const host = params.has('host');
+const presenting = params.has('display');
+const page = new URL('teamengagement.html', location.href);
+const saved = (key, value) => {
+  try {
+    if (value === undefined) return sessionStorage.getItem(key);
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, value);
+  } catch {}
+};
+const browserValue = (key, value) => {
+  try {
+    if (value === undefined) return localStorage.getItem(key);
+    localStorage.setItem(key, value);
+  } catch {}
+};
+const device = browserValue('report-out-device') || crypto.randomUUID();
+browserValue('report-out-device', device);
+const fragment = new URLSearchParams(location.hash.slice(1));
+const teamKey = fragment.get('team') || saved('report-out-team') || '';
+if (fragment.has('team')) {
+  saved('report-out-team', teamKey);
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
+const teamLink = (key, display = false) => {
+  const url = new URL(page);
+  if (display) url.searchParams.set('display', '');
+  if (key) url.hash = new URLSearchParams({ team: key }).toString();
+  return url.href;
+};
+
+async function api(path, key, body, type = 'json') {
+  const origin = (window.REPORT_OUT_API || '').trim().replace(/\/+$/, '');
+  if (!origin) throw new Error('The shared answer cloud has not been set up yet.');
+  let response;
+  try {
+    response = await fetch(origin + path, {
+      method: body === undefined ? 'GET' : 'POST', cache: 'no-store', referrerPolicy: 'no-referrer',
+      headers: { Authorization: 'Bearer ' + key, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+      body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(12000),
+    });
+  } catch { throw new Error('Could not connect to the answer cloud. Check your connection and try again.'); }
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    const error = new Error(detail.error || 'Could not complete that request. Try again.');
+    error.status = response.status;
+    throw error;
+  }
+  return type === 'blob' ? response.blob() : response.json();
+}
+
+function status(element, message = '', error = false) {
+  element.textContent = message;
+  element.dataset.error = error ? 'true' : 'false';
+}
+
+let round = null, signature = '', sending = false, refreshing = false;
+let responseMark = browserValue('report-out-answered') || '';
+let online = false;
+const colors = ['#164d40','#754407','#584478','#274f73','#843e30'];
+const joined = id => Boolean(id && id === responseMark);
+
+function setRespondentState() {
+  const hasRound = Boolean(round);
+  const open = hasRound && !round.closed_at;
+  const disabled = !online || !open || joined(round?.id) || sending;
+  $('answer').disabled = disabled;
+  $('send').disabled = disabled;
+  $('present').hidden = presenting || !hasRound;
+  $('exit-present').hidden = !presenting;
+  $('exit-present').href = teamLink(teamKey);
+  $('live-dot').dataset.live = String(online && open);
+  $('question').textContent = round?.question || 'Today’s question';
+  $('intro').textContent = hasRound
+    ? (open ? 'Add your answer and see what your teammates are saying.' : 'This question is closed. You can still see what the team said.')
+    : 'A quick question to kick off the report-out.';
+}
+
+function paintCloud(items, total) {
+  const nextSignature = JSON.stringify([round?.id, items]);
+  if (signature !== nextSignature) {
+    signature = nextSignature;
+    const nodes = [];
+    const top = items[0]?.count || 1;
+    items.forEach(({ answer, count }, index) => {
+      const word = document.createElement('span');
+      word.className = 'word';
+      word.textContent = answer;
+      word.title = count === 1 ? '1 response' : count + ' responses';
+      word.setAttribute('aria-label', answer + ', ' + word.title);
+      const weight = count === 1 ? 0 : Math.log(count) / Math.log(Math.max(2, top));
+      word.style.fontSize = 'clamp(' + (1.06 + 1.4 * weight) + 'rem, ' + (2 + 6 * weight) + 'vw, ' + (1.24 + 2.3 * weight) + 'rem)';
+      word.style.setProperty('--word-color', colors[index % colors.length]);
+      nodes.push(word);
+    });
+    if (!nodes.length) {
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = round ? 'The cloud is waiting for its first answer.' : 'The next question will appear here when your host opens it.';
+      nodes.push(empty);
+    }
+    $('cloud').replaceChildren(...nodes);
+  }
+  $('cloud-status').textContent = !round ? 'Waiting for a question'
+    : total + (total === 1 ? ' response' : ' responses') + (round.closed_at ? ' · Closed' : ' · Updating live');
+}
+
+async function refresh() {
+  if (refreshing || !teamKey) return;
+  refreshing = true;
+  try {
+    const next = await api('/api/state', teamKey);
+    const changed = next.round?.id !== round?.id;
+    online = true;
+    if (changed) {
+      $('answer').value = '';
+      status($('answer-status'), joined(next.round?.id) ? 'Your answer is in the cloud.' : '');
+    } else if ($('answer-status').dataset.connection === 'true') status($('answer-status'));
+    $('answer-status').dataset.connection = 'false';
+    round = next.round;
+    setRespondentState();
+    paintCloud(next.answers, next.total);
+  } catch (error) {
+    online = false;
+    setRespondentState();
+    $('cloud-status').textContent = 'Not connected';
+    $('answer-status').dataset.connection = 'true';
+    status($('answer-status'), error.message, true);
+  } finally { refreshing = false; }
+}
+
+function startTeam() {
+  $('respondent').hidden = false;
+  document.body.classList.toggle('presenting', presenting);
+  setRespondentState();
+  if (!teamKey) {
+    status($('answer-status'), 'Open the team link from your host to join the cloud.', true);
+    $('cloud-status').textContent = 'Team link needed';
+  } else {
+    refresh();
+    window.setInterval(() => { if (!document.hidden) refresh(); }, 3000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  }
+  $('present').addEventListener('click', () => { location.href = teamLink(teamKey, true); });
+  $('answer-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (sending || !online || !round || round.closed_at || joined(round.id)) return;
+    const answer = $('answer').value.trim();
+    if (!answer) { status($('answer-status'), 'Enter a word or short phrase.', true); return; }
+    const id = round.id;
+    sending = true;
+    setRespondentState();
+    try {
+      await api('/api/answer', teamKey, { roundId: id, answer, deviceId: device });
+      responseMark = id;
+      browserValue('report-out-answered', id);
+      if (round?.id === id) {
+        status($('answer-status'), 'You’re in the cloud. Thanks for answering!');
+        $('answer').value = '';
+        $('cloud-heading').focus({ preventScroll: true });
+        $('result').scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      }
+    } catch (error) {
+      status($('answer-status'), error.message, true);
+    } finally {
+      sending = false;
+      setRespondentState();
+      refresh();
+    }
+  });
+}
+
+let hostKey = '', shareUrl = '';
+const printableDate = value => new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+
+async function download(id) {
+  const path = '/api/admin/export' + (id ? '?round=' + encodeURIComponent(id) : '');
+  const file = await api(path, hostKey, undefined, 'blob');
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = id ? 'report-out-' + id.slice(0, 8) + '.csv' : 'report-out-all-questions.csv';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+async function runHost(button, action) {
+  if (button.disabled) return;
+  button.disabled = true;
+  status($('host-status'));
+  try { await action(); }
+  catch (error) { status($('host-status'), error.message, true); }
+  finally { button.disabled = false; }
+}
+
+async function hostData(credential = hostKey) {
+  const data = await api('/api/admin/rounds', credential);
+  shareUrl = teamLink(data.teamKey);
+  $('share-url').value = shareUrl;
+  $('display-link').href = teamLink(data.teamKey, true);
+  $('export-all').disabled = data.rounds.length === 0;
+  const historyRows = data.rounds.map(item => {
+    const li = document.createElement('li');
+    li.className = 'history-line';
+    const block = document.createElement('div');
+    const label = document.createElement('strong');
+    const detail = document.createElement('span');
+    detail.className = 'history-meta';
+    label.textContent = item.question;
+    detail.textContent = (item.closed_at ? 'Closed' : 'Open') + ' · ' + printableDate(item.opened_at)
+      + ' · ' + item.count + (item.count === 1 ? ' response' : ' responses');
+    block.append(label, detail);
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const exportButton = document.createElement('button');
+    exportButton.className = 'subtle';
+    exportButton.textContent = 'Export CSV';
+    exportButton.setAttribute('aria-label', 'Export CSV for ' + item.question);
+    exportButton.addEventListener('click', () => runHost(exportButton, () => download(item.id)));
+    actions.append(exportButton);
+    if (!item.closed_at) {
+      const close = document.createElement('button');
+      close.className = 'subtle';
+      close.textContent = 'Close question';
+      close.addEventListener('click', () => runHost(close, async () => {
+        await api('/api/admin/close', hostKey, { roundId: item.id });
+        await hostData();
+        status($('host-status'), 'Question closed. The results are still visible to your team.');
+      }));
+      actions.append(close);
+    }
+    li.append(block, actions);
+    return li;
+  });
+  if (!historyRows.length) {
+    const li = document.createElement('li');
+    li.textContent = 'No questions yet. Open one to get started.';
+    historyRows.push(li);
+  }
+  $('history').replaceChildren(...historyRows);
+}
+
+function startHost() {
+  $('host').hidden = false;
+  $('mode-link').textContent = 'Team view ↗';
+  $('mode-link').href = teamLink(teamKey);
+  $('host-form').addEventListener('submit', event => {
+    event.preventDefault();
+    const button = event.submitter;
+    runHost(button, async () => {
+      const value = $('host-key').value.trim();
+      await hostData(value);
+      hostKey = value;
+      $('host-key').value = '';
+      $('signin').hidden = true;
+      $('manage').hidden = false;
+      $('question-input').focus();
+    });
+  });
+  $('question-form').addEventListener('submit', event => {
+    event.preventDefault();
+    runHost(event.submitter, async () => {
+      const question = $('question-input').value.trim();
+      await api('/api/admin/open', hostKey, { question });
+      $('question-input').value = '';
+      await hostData();
+      status($('host-status'), 'Question is live. Share your team link or open the display.');
+    });
+  });
+  $('copy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      status($('host-status'), 'Team link copied.');
+    } catch {
+      $('manual-copy').hidden = false;
+      $('share-url').focus();
+      $('share-url').select();
+      status($('host-status'), 'Copy the selected team link.');
+    }
+  });
+  $('export-all').addEventListener('click', event => runHost(event.currentTarget, () => download()));
+  $('lock-host').addEventListener('click', () => {
+    hostKey = '';
+    shareUrl = '';
+    $('share-url').value = '';
+    $('manual-copy').hidden = true;
+    $('display-link').removeAttribute('href');
+    $('question-input').value = '';
+    $('history').replaceChildren();
+    $('manage').hidden = true;
+    $('signin').hidden = false;
+    status($('host-status'));
+    $('host-key').focus();
+  });
+}
+
+host ? startHost() : startTeam();
+
+</script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="top">
+    <div class="shell bar">
+      <a class="brand" href="teamengagement.html" aria-label="The Report-Out home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19 4c5 0 9 4 9 9s-4 9-9 9h-1l-6 4v-5c-4-1-6-4-6-8s4-9 9-9z" fill="currentColor"/><circle cx="12" cy="13" r="1.5"/><circle cx="17" cy="13" r="1.5"/><circle cx="22" cy="13" r="1.5"/></svg>
+        <span>The Report-Out</span>
+      </a>
+      <a id="mode-link" href="?host">Host controls <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+  <main id="content" class="shell">
+    <section id="respondent" hidden>
+      <div class="hero">
+        <div class="eyebrow"><span class="spark" aria-hidden="true">✳</span> TEAM CHECK-IN</div>
+        <h1 id="question">Today’s question</h1>
+        <p id="intro">A quick question to kick off the report-out.</p>
+      </div>
+      <div class="layout">
+        <section class="card form-card" aria-labelledby="answer-heading">
+          <h2 id="answer-heading">Add your answer</h2>
+          <p>One word or a short phrase is perfect.</p>
+          <form id="answer-form">
+            <label for="answer" class="visually-hidden">Your answer</label>
+            <input id="answer" maxlength="48" placeholder="Type your answer…" required disabled autocomplete="off">
+            <button id="send" type="submit" disabled>Add to the cloud <span aria-hidden="true">↗</span></button>
+          </form>
+          <p id="answer-status" class="status" role="status"></p>
+          <p class="privacy">No name or sign-in required.</p>
+        </section>
+        <section id="result" class="card cloud-card" aria-labelledby="cloud-heading">
+          <div class="cloud-top">
+            <div><p class="eyebrow">THE TEAM SAID</p><h2 id="cloud-heading" tabindex="-1">Answer cloud</h2></div>
+            <button type="button" id="present" class="subtle" hidden>Present cloud <span aria-hidden="true">↗</span></button>
+            <a id="exit-present" href="teamengagement.html" class="subtle" hidden>Back to question</a>
+          </div>
+          <div id="cloud" class="cloud" aria-label="Answers grouped by frequency">
+            <p class="empty">The cloud is waiting for its first answer.</p>
+          </div>
+          <div class="cloud-bottom"><span id="live-dot" class="dot" aria-hidden="true"></span><span id="cloud-status">Waiting for a question</span></div>
+        </section>
+      </div>
+    </section>
+    <section id="host" hidden>
+      <div class="hero">
+        <div class="eyebrow"><span class="spark" aria-hidden="true">✳</span> FACILITATOR VIEW</div>
+        <h1>Host controls</h1>
+        <p>Pick a prompt, share your team link, and see what comes back.</p>
+      </div>
+      <section class="card host-card" id="signin">
+        <form id="host-form">
+          <label for="host-key">Host key</label>
+          <div class="row"><input id="host-key" type="password" required autocomplete="off" placeholder="Enter your host key"><button type="submit">Unlock</button></div>
+        </form>
+      </section>
+      <p id="host-status" class="status" role="status"></p>
+      <div id="manage" hidden>
+        <div class="layout host-layout">
+          <section class="card form-card">
+            <h2>Open a question</h2>
+            <p>Opening a new question closes the current one and starts a fresh cloud.</p>
+            <form id="question-form">
+              <label for="question-input" class="visually-hidden">New question</label>
+              <textarea id="question-input" maxlength="160" rows="3" placeholder="What snack disappears first in the break room?" required></textarea>
+              <button type="submit">Open question <span aria-hidden="true">↗</span></button>
+            </form>
+          </section>
+          <section class="card share-card">
+            <h2>Invite the team</h2>
+            <p>The same link works for each new question. Anyone with it can answer and view the current cloud.</p>
+            <div class="actions">
+              <button type="button" id="copy">Copy team link</button>
+              <a class="subtle" id="display-link" target="_blank" rel="noopener">Open display ↗</a>
+            </div>
+            <div id="manual-copy" hidden><label for="share-url">Team link</label><input id="share-url" readonly></div>
+          </section>
+        </div>
+        <section class="card history-card">
+          <div class="cloud-top"><div><p class="eyebrow">PAST &amp; PRESENT</p><h2>Question history</h2></div><button type="button" id="export-all" class="subtle">Export all CSV</button></div>
+          <ul id="history"></ul>
+        </section>
+        <button type="button" class="subtle" id="lock-host">Lock host controls</button>
+      </div>
+    </section>
+  </main>
+  <footer class="shell footer"><span>THE REPORT-OUT</span><span>Small questions. Good conversation.</span></footer>
+</body>
+</html>
