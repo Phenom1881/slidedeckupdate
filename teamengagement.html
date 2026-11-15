@@ -111,24 +111,95 @@ const teamLink = (key, display = false) => {
   return url.href;
 };
 
-async function api(path, key, body, type = 'json') {
-  const origin = (window.REPORT_OUT_API || '').trim().replace(/\/+$/, '');
-  if (!origin) throw new Error('The shared answer cloud has not been set up yet.');
-  let response;
+// Anonymous Google Apps Script web apps don't send cross-origin CORS headers.
+// GET responses use a callback; writes use a form to a hidden iframe and a
+// server-side receipt. Neither requires visitors to have a Google account.
+let callbackNumber = 0;
+function readBackend(action, key, extra = {}) {
+  return new Promise((resolve, reject) => {
+    const callback = 'reportOutCb_' + (++callbackNumber) + '_' + Date.now();
+    const script = document.createElement('script');
+    let finished = false;
+    const clear = () => {
+      if (finished) return false;
+      finished = true;
+      clearTimeout(timer);
+      delete window[callback];
+      script.remove();
+      return true;
+    };
+    const timer = setTimeout(() => {
+      if (clear()) reject(new Error('The answer cloud did not respond. Check the backend deployment.'));
+    }, 14000);
+    window[callback] = result => {
+      if (!clear()) return;
+      result?.ok ? resolve(result.data) : reject(new Error(result?.error || 'Request failed.'));
+    };
+    script.onerror = () => {
+      if (clear()) reject(new Error('Unable to load the answer cloud backend.'));
+    };
+    const url = new URL(window.REPORT_OUT_API);
+    Object.entries({ action, key, callback, ...extra }).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    script.src = url.href;
+    script.referrerPolicy = 'no-referrer';
+    document.head.append(script);
+  });
+}
+async function writeBackend(action, key, payload) {
+  const requestId = crypto.randomUUID();
+  const frameName = 'reportOutWrite_' + requestId.replace(/-/g, '');
+  const iframe = document.createElement('iframe');
+  iframe.name = frameName;
+  iframe.hidden = true;
+  iframe.title = 'Background answer submission';
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = window.REPORT_OUT_API;
+  form.target = frameName;
+  form.acceptCharset = 'UTF-8';
+  form.hidden = true;
+  const fields = { action, key, requestId, ...payload };
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value);
+    form.append(input);
+  });
+  document.body.append(iframe, form);
   try {
-    response = await fetch(origin + path, {
-      method: body === undefined ? 'GET' : 'POST', cache: 'no-store', referrerPolicy: 'no-referrer',
-      headers: { Authorization: 'Bearer ' + key, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-      body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(12000),
-    });
-  } catch { throw new Error('Could not connect to the answer cloud. Check your connection and try again.'); }
-  if (!response.ok) {
-    const detail = await response.json().catch(() => ({}));
-    const error = new Error(detail.error || 'Could not complete that request. Try again.');
-    error.status = response.status;
-    throw error;
+    form.submit();
+    for (let i = 0; i < 18; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1100));
+      const result = await readBackend('receipt', key, { requestId });
+      if (result.done) {
+        if (!result.ok) throw new Error(result.error || 'Submission failed.');
+        return { ok: true };
+      }
+    }
+    throw new Error('Submission was not confirmed. Refresh before submitting again.');
+  } finally {
+    form.remove();
+    iframe.remove();
   }
-  return type === 'blob' ? response.blob() : response.json();
+}
+async function api(path, key, body, type = 'json') {
+  const origin = (window.REPORT_OUT_API || '').trim();
+  if (!origin) throw new Error('The shared answer cloud is not connected yet. The host must add the Google Apps Script deployment URL.');
+  if (!/^https:\/\/script\.google\.com\/macros\/s\//.test(origin)) {
+    throw new Error('The configured backend URL is invalid.');
+  }
+  if (type === 'blob') {
+    const id = new URL(path, location.href).searchParams.get('round') || '';
+    const result = await readBackend('export', key, { round: id });
+    return new Blob([result.csv], { type: 'text/csv;charset=utf-8' });
+  }
+  if (path === '/api/state') return readBackend('state', key, { device });
+  if (path === '/api/admin/rounds') return readBackend('admin', key);
+  const actions = { '/api/answer': 'answer', '/api/admin/open': 'open', '/api/admin/close': 'close' };
+  const action = actions[path];
+  if (!action || body === undefined) throw new Error('Unsupported action.');
+  return writeBackend(action, key, body);
 }
 
 function status(element, message = '', error = false) {
@@ -138,14 +209,14 @@ function status(element, message = '', error = false) {
 
 let round = null, signature = '', sending = false, refreshing = false;
 let responseMark = browserValue('report-out-answered') || '';
-let online = false;
+let online = false, serverResponded = false;
 const colors = ['#164d40','#754407','#584478','#274f73','#843e30'];
 const joined = id => Boolean(id && id === responseMark);
 
 function setRespondentState() {
   const hasRound = Boolean(round);
   const open = hasRound && !round.closed_at;
-  const disabled = !online || !open || joined(round?.id) || sending;
+  const disabled = !online || !open || joined(round?.id) || serverResponded || sending;
   $('answer').disabled = disabled;
   $('send').disabled = disabled;
   $('present').hidden = presenting || !hasRound;
@@ -194,9 +265,10 @@ async function refresh() {
     const next = await api('/api/state', teamKey);
     const changed = next.round?.id !== round?.id;
     online = true;
+    serverResponded = !!next.responded;
     if (changed) {
       $('answer').value = '';
-      status($('answer-status'), joined(next.round?.id) ? 'Your answer is in the cloud.' : '');
+      status($('answer-status'), (joined(next.round?.id) || serverResponded) ? 'Your answer is in the cloud.' : '');
     } else if ($('answer-status').dataset.connection === 'true') status($('answer-status'));
     $('answer-status').dataset.connection = 'false';
     round = next.round;
@@ -226,7 +298,7 @@ function startTeam() {
   $('present').addEventListener('click', () => { location.href = teamLink(teamKey, true); });
   $('answer-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (sending || !online || !round || round.closed_at || joined(round.id)) return;
+    if (sending || !online || !round || round.closed_at || joined(round.id) || serverResponded) return;
     const answer = $('answer').value.trim();
     if (!answer) { status($('answer-status'), 'Enter a word or short phrase.', true); return; }
     const id = round.id;
